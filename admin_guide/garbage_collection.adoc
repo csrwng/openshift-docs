@@ -58,6 +58,28 @@ kubeletArguments:
 ----
 ====
 
+==== Detection of containers for deletion
+
+At the moment only docker and rkt are supported. Rkt has its own GC. The following is only docker related.
+
+Each spin of the garbage collector loop goes through the following steps:
+
+- retrieve a list of available containers
+- filter out all containers that are running or are not alive longer
+  than `minimum-container-ttl-duration` parameter
+- determine pod membership of each remaining container
+- remove all unidentified containers (with no pod membership)
+- for each pod that contains more containers than
+  `maximum-dead-containers-per-container`, sort the containers by creation time
+- start removing containers from the oldest first
+  until `maximum-dead-containers-per-container` is met
+- if there are still more containers in the list than `maximum-dead-containers`,
+  the collector starts removing containers from each pod so a number of containers
+  in each one is not greater than average number of containers per pod,
+  i.e. (all remaining containers)/(number of pods).
+- if this is still not enough, sort all containers in the list and start
+  removing containers from the oldest first
+  until `maximum-dead-containers` criterion is met.
 
 [[image-garbage-collection]]
 
@@ -95,6 +117,6 @@ Two lists of images are retrieved in each gargabe collector run:
 1. list of images currently running in at least one pod
 2. list of images available on a host
 
-As new containers are run, new images appear. All images are marked with a timestamp. If the image is running (1.) or is newly detected (2.), it is marked with the current time. The remaining images are already marked from the previous spins. All images are then sorted by the timestamp.
+As new containers are run, new images appear. All images are marked with a time stamp. If the image is running (1.) or is newly detected (2.), it is marked with the current time. The remaining images are already marked from the previous spins. All images are then sorted by the time stamp.
 
-Once the collection starts, the oldest images get deleted first until the stopping criterion is met.
+Once the collection starts, the oldest images are deleted first until the stopping criterion is met.
