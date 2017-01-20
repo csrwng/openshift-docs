@@ -12,4 +12,4 @@ JAVA_HOME=/usr/lib/jvm/jre asciibinder build
 chgrp -R root . && chmod -R g+wx .
 
 echo "---> Adding index file"
-cp docs/_openshift/index.html docs/_preview
+cp _openshift/index.html docs/_preview
