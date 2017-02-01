@@ -11,18 +11,17 @@ def commitId=""
 
 // getRepoURL retrieves the origin URL of the current source repository
 def getRepoURL = {
-  return (sh script: "git config --get remote.origin.url", returnStdout: true).trim()
+  return sh(script: "git config --get remote.origin.url", returnStdout: true).trim()
 }
 
 def getRepoCommit = {
-  return (sh script: "git rev-parse --short HEAD", returnStdout: true).trim()
+  return sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
 }
 
 // getRouteHostname retrieves the host name from the given route in an
 // OpenShift namespace
 def getRouteHostname = { String routeName, String projectName ->
-  sh "oc get route ${routeName} -n ${projectName} -o jsonpath='{ .spec.host }' > apphost"
-  return readFile("apphost").trim()
+  return sh(script: "oc get route ${routeName} -n ${projectName} -o jsonpath='{ .spec.host }'", returnStdout: true).trim()
 }
 
 try { // Use a try block to perform cleanup in a finally block when the build fails
