@@ -41,7 +41,7 @@ try { // Use a try block to perform cleanup in a finally block when the build fa
     // When testing a PR, create a new project to perform the build
     // and deploy artifacts.
     stage ('Create PR Project') {
-      project = uniqueName("${appName}-${commitId}")
+      project = "${appName}-${commitId}"
       sh "oc new-project ${project}"
       projectCreated=true
       sh "oc policy add-role-to-group view system:authenticated -n ${project}"
