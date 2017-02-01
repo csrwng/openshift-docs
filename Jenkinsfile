@@ -24,6 +24,18 @@ def getRouteHostname = { String routeName, String projectName ->
   return sh(script: "oc get route ${routeName} -n ${projectName} -o jsonpath='{ .spec.host }'", returnStdout: true).trim()
 }
 
+def setBuildStatus = { String url, String context, String message, String state, String backref ->
+  step([
+    $class: "GitHubCommitStatusSetter",
+    reposSource: [$class: "ManuallyEnteredRepositorySource", url: url ],
+    contextSource: [$class: "ManuallyEnteredCommitContextSource", context: context ],
+    errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
+    statusBackrefSource: [ $class: "ManuallyEnteredBackrefSource", backref: backref ],
+    statusResultSource: [ $class: "ConditionalStatusResultSource", results: [
+        [$class: "AnyBuildResult", message: message, state: state]] ]
+  ]);
+}
+
 try { // Use a try block to perform cleanup in a finally block when the build fails
 
   node {
@@ -41,7 +53,6 @@ try { // Use a try block to perform cleanup in a finally block when the build fa
     // When testing a PR, create a new project to perform the build
     // and deploy artifacts.
     stage ('Create PR Project') {
-      sh "oc whoami"
       project = "${appName}-${commitId}"
       sh "oc new-project ${project}"
       projectCreated=true
@@ -62,6 +73,7 @@ try { // Use a try block to perform cleanup in a finally block when the build fa
     }
     def appHostName = getRouteHostname(appName, project)
     stage ('Manual Test') {
+      setBuildStatus(repoUrl, "ci/preview", "Preview is ready", "SUCCESS", "http://${appHostName}")
       timeout(time:2, unit:'DAYS') {
         input "Is everything OK?"
       }
