@@ -41,6 +41,7 @@ try { // Use a try block to perform cleanup in a finally block when the build fa
     // When testing a PR, create a new project to perform the build
     // and deploy artifacts.
     stage ('Create PR Project') {
+      sh "oc whoami"
       project = "${appName}-${commitId}"
       sh "oc new-project ${project}"
       projectCreated=true
