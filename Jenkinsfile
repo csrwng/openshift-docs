@@ -25,6 +25,14 @@ def getRouteHostname = { String routeName, String projectName ->
 }
 
 def setBuildStatus = { String url, String context, String message, String state, String backref ->
+     step([$class: 'GitHubCommitStatusSetter',
+           contextSource: [$class: 'ManuallyEnteredCommitContextSource',
+                           context: 'Test Context'],
+           statusResultSource: [$class: 'ConditionalStatusResultSource',
+                                results: [[$class: 'AnyBuildResult',
+                                           message: 'test message',
+                                           state: 'SUCCESS']]]])
+/*
   step([
     $class: "GitHubCommitStatusSetter",
     reposSource: [$class: "ManuallyEnteredRepositorySource", url: url ],
@@ -34,6 +42,7 @@ def setBuildStatus = { String url, String context, String message, String state,
     statusResultSource: [ $class: "ConditionalStatusResultSource", results: [
         [$class: "AnyBuildResult", message: message, state: state]] ]
   ]);
+*/
 }
 
 try { // Use a try block to perform cleanup in a finally block when the build fails
