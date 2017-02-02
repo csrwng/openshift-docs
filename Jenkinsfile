@@ -33,7 +33,6 @@ try { // Use a try block to perform cleanup in a finally block when the build fa
 
     stage ('Checkout') {
       checkout scm
-      sh "env"
       repoUrl = getRepoURL()
       commitId = getRepoCommit()
     }
@@ -62,11 +61,23 @@ try { // Use a try block to perform cleanup in a finally block when the build fa
     def appHostName = getRouteHostname(appName, project)
     stage ('Manual Test') {
       timeout(time:2, unit:'DAYS') {
-        input "Preview is available at http://${appHostName} Is everything OK?"
+        input "Is everything OK?"
       }
     }
-    approved = true
-  }
+    stage ('Set Preview Status') {
+      step([
+          $class: 'GitHubCommitStatusSetter',
+          errorHandlers: [[$class: 'ShallowAnyErrorHandler']],
+          statusResultSource: [
+              $class: 'ConditionalStatusResultSource',
+              results: [
+                  [$class: 'BetterThanOrEqualBuildResult', result: 'SUCCESS', state: 'SUCCESS', message: currentBuild.description],
+                  [$class: 'BetterThanOrEqualBuildResult', result: 'FAILURE', state: 'FAILURE', message: currentBuild.description],
+                  [$class: 'AnyBuildResult', state: 'FAILURE', message: 'Loophole']
+              ]
+          ]
+      ])
+    }
 }
 finally {
   if (projectCreated) {
