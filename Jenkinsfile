@@ -81,7 +81,7 @@ try { // Use a try block to perform cleanup in a finally block when the build fa
 
     stage ('Verify Service') {
       openshiftVerifyService serviceName: appName, namespace: project
-      setBuildStatus context: "ci/preview", message: "preview available", state: "SUCCESS", backref: "https://www.github.com"
+      setBuildStatus(context: "ci/preview", message: "preview available", state: "SUCCESS", backref: "https://www.github.com")
     }
     def appHostName = getRouteHostname(appName, project)
     stage ('Manual Test') {
