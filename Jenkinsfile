@@ -25,14 +25,14 @@ def getRouteHostname = { String routeName, String projectName ->
 }
 
 def setBuildStatus = { String url, String context, String message, String state, String backref ->
-     step([$class: 'GitHubCommitStatusSetter',
-           commitShaSource: [$class: 'ManuallyEnteredShaSource', sha: "${github_commit}"],
-           contextSource: [$class: 'ManuallyEnteredCommitContextSource',
-                           context: 'Test Context'],
-           statusResultSource: [$class: 'ConditionalStatusResultSource',
-                                results: [[$class: 'AnyBuildResult',
-                                           message: 'test message',
-                                           state: 'SUCCESS']]]])
+     step([$class: "GitHubCommitStatusSetter",
+           commitShaSource: [$class: "ManuallyEnteredShaSource", sha: "${github_commit}"],
+           contextSource: [$class: "ManuallyEnteredCommitContextSource", context: context],
+           statusBackrefSource: [$class "ManuallyEnteredBackrefSource", backref: backref],
+           statusResultSource: [$class: "ConditionalStatusResultSource",
+                                results: [[$class: "AnyBuildResult",
+                                           message: message,
+                                           state: state ]]]])
 /*
   step([
     $class: "GitHubCommitStatusSetter",
