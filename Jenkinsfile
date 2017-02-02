@@ -28,12 +28,12 @@ try { // Use a try block to perform cleanup in a finally block when the build fa
 
   node {
     // Initialize variables in default node context
-    isPR        = env.BRANCH_NAME ? env.BRANCH_NAME.startsWith("PR") : false
     baseProject = env.PROJECT_NAME
     project     = env.PROJECT_NAME
 
     stage ('Checkout') {
       checkout scm
+      sh "env"
       repoUrl = getRepoURL()
       commitId = getRepoCommit()
     }
