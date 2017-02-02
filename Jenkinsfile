@@ -25,7 +25,6 @@ def getRouteHostname = { String routeName, String projectName ->
 }
 
 def setBuildStatus = { String context, String message, String state, String backref ->
-     sh "echo setting context: ${context}, message: ${message}, state: ${state}"
      step([$class: "GitHubCommitStatusSetter",
            commitShaSource: [$class: "ManuallyEnteredShaSource", sha: "${github_commit}"],
            contextSource: [$class: "ManuallyEnteredCommitContextSource", context: context],
@@ -34,17 +33,6 @@ def setBuildStatus = { String context, String message, String state, String back
                                 results: [[$class: "AnyBuildResult",
                                            message: message,
                                            state: state ]]]])
-/*
-  step([
-    $class: "GitHubCommitStatusSetter",
-    reposSource: [$class: "ManuallyEnteredRepositorySource", url: url ],
-    contextSource: [$class: "ManuallyEnteredCommitContextSource", context: context ],
-    errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
-    statusBackrefSource: [ $class: "ManuallyEnteredBackrefSource", backref: backref ],
-    statusResultSource: [ $class: "ConditionalStatusResultSource", results: [
-        [$class: "AnyBuildResult", message: message, state: state]] ]
-  ]);
-*/
 }
 
 try { // Use a try block to perform cleanup in a finally block when the build fails
@@ -55,6 +43,7 @@ try { // Use a try block to perform cleanup in a finally block when the build fa
     project     = env.PROJECT_NAME
 
     stage ('Checkout') {
+      setBuildStatus("ci/preview", "Generating preview", "PENDING", "${BUILD_URL}")
       checkout scm
       sh "env"
       repoUrl = getRepoURL()
@@ -78,10 +67,9 @@ try { // Use a try block to perform cleanup in a finally block when the build fa
       sh "oc start-build ${appName} -n ${project} --from-repo=. --follow"
     }
 
-
     stage ('Verify Service') {
       openshiftVerifyService serviceName: appName, namespace: project
-      setBuildStatus(context: "ci/preview", message: "preview available", state: "SUCCESS", backref: "https://www.github.com")
+      setBuildStatus("ci/preview", "preview available", "SUCCESS", "https://www.github.com")
     }
     def appHostName = getRouteHostname(appName, project)
     stage ('Manual Test') {
