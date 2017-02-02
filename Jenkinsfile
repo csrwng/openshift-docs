@@ -24,11 +24,12 @@ def getRouteHostname = { String routeName, String projectName ->
   return sh(script: "oc get route ${routeName} -n ${projectName} -o jsonpath='{ .spec.host }'", returnStdout: true).trim()
 }
 
-def setBuildStatus = { String url, String context, String message, String state, String backref ->
+def setBuildStatus = { String context, String message, String state, String backref ->
+     sh "echo setting context: ${context}, message: ${message}, state: ${state}"
      step([$class: "GitHubCommitStatusSetter",
            commitShaSource: [$class: "ManuallyEnteredShaSource", sha: "${github_commit}"],
            contextSource: [$class: "ManuallyEnteredCommitContextSource", context: context],
-           statusBackrefSource: [$class: "ManuallyEnteredBackrefSource", backref: backref],
+           statusBackrefSource: [$class: "ManuallyEnteredBackrefSource", backref: ""],
            statusResultSource: [$class: "ConditionalStatusResultSource",
                                 results: [[$class: "AnyBuildResult",
                                            message: message,
@@ -80,7 +81,7 @@ try { // Use a try block to perform cleanup in a finally block when the build fa
 
     stage ('Verify Service') {
       openshiftVerifyService serviceName: appName, namespace: project
-      setBuildStatus url: repoUrl, context: "ci/preview", message: "preview available", state: "SUCCESS", backref: "https://www.github.com"
+      setBuildStatus context: "ci/preview", message: "preview available", state: "SUCCESS", backref: "https://www.github.com"
     }
     def appHostName = getRouteHostname(appName, project)
     stage ('Manual Test') {
