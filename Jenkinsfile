@@ -76,7 +76,7 @@ openshift.withCluster() {
                 }
             }
         }
-        if previewGenerated {
+        if (previewGenerated) {
             setBuildStatus("ci/preview", "Done.", "SUCCESS", "")
             setBuildStatus("ci/preview/docs", "Preview no longer available.", "SUCCESS", "")
         } else {
