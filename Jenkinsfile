@@ -9,6 +9,7 @@ def appName="openshift-docs"
 def projectPrefix="docs"
 
 def setBuildStatus = { String context, String message, String state, String backref ->
+     echo "Setting build status on ${githubCommit}: context: ${context}, message: ${message}, state: ${state}, backref: ${backref}"
      step([$class: "GitHubCommitStatusSetter",
            commitShaSource: [$class: "ManuallyEnteredShaSource", sha: "${githubCommit}"],
            contextSource: [$class: "ManuallyEnteredCommitContextSource", context: context],
