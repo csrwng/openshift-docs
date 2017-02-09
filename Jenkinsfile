@@ -1,7 +1,7 @@
 #!/usr/bin/env groovy
 
-# Parameters expected:
-# githubCommit - sha of GitHub commit that is being tested
+// Parameters expected:
+// githubCommit - sha of GitHub commit that is being tested
 
 def project=""
 def projectCreated=false
