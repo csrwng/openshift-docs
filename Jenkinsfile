@@ -58,7 +58,7 @@ openshift.withCluster() {
                     def route = openshift.selector("route", appName)
                     def hostName = route.object().spec.host
                     setBuildStatus("ci/preview", "Preview available.", "PENDING", "${RUN_DISPLAY_URL}")
-                    setBuildStatus("ci/preview/docs", "Click on Details to see preview.", "PENDING", "http://{hostName}/index.html")
+                    setBuildStatus("ci/preview/docs", "Click on Details to see preview.", "PENDING", "http://${hostName}/index.html")
                     previewGenerated=true
                     timeout(time:2, unit:'DAYS') {
                         input "Done with preview?"
@@ -78,7 +78,7 @@ openshift.withCluster() {
         }
         if (previewGenerated) {
             setBuildStatus("ci/preview", "Done.", "SUCCESS", "")
-            setBuildStatus("ci/preview/docs", "Preview no longer available.", "SUCCESS", "")
+            setBuildStatus("ci/preview/docs", "Done.", "SUCCESS", "")
         } else {
             setBuildStatus("ci/preview", "Failed to generate preview.", "FAILURE", "")
         }
