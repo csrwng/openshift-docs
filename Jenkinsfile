@@ -61,9 +61,8 @@ openshift.withCluster() {
                     setBuildStatus("ci/preview/docs", "Click on Details to see preview.", "PENDING", "http://${hostName}/index.html")
                     previewGenerated=true
                     timeout(time:2, unit:'DAYS') {
-                        input "Done with preview?"
+                        input(message: "Done with preview?", ok: "Done")
                     }
-                    
                 }
             }
         }
