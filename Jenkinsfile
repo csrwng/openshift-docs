@@ -7,13 +7,13 @@ def project=""
 def projectCreated=false
 def appName="openshift-docs"
 def projectPrefix="docs"
+def previewGenerated=false
 
 def setBuildStatus = { String context, String message, String state, String backref ->
-     echo "Setting build status on ${githubCommit}: context: ${context}, message: ${message}, state: ${state}, backref: ${backref}"
      step([$class: "GitHubCommitStatusSetter",
            commitShaSource: [$class: "ManuallyEnteredShaSource", sha: "${githubCommit}"],
            contextSource: [$class: "ManuallyEnteredCommitContextSource", context: context],
-           statusBackrefSource: [$class: "ManuallyEnteredBackrefSource", backref: ""],
+           statusBackrefSource: [$class: "ManuallyEnteredBackrefSource", backref: backref],
            statusResultSource: [$class: "ConditionalStatusResultSource",
                                 results: [[$class: "AnyBuildResult",
                                            message: message,
@@ -24,7 +24,7 @@ openshift.withCluster() {
     try {
         node {
             stage("Checkout") {
-                setBuildStatus("ci/preview", "Generating preview", "PENDING", "${BUILD_URL}")
+                setBuildStatus("ci/preview", "Generating preview", "PENDING", "${RUN_DISPLAY_URL}")
                 checkout scm
             }
             stage ("Create Project") {
@@ -55,9 +55,15 @@ openshift.withCluster() {
                     }
                 }
                 stage ("Preview Available") {
+                    def route = openshift.selector("route", appName)
+                    def hostName = route.object().spec.host
+                    setBuildStatus("ci/preview", "Preview available.", "PENDING", "${RUN_DISPLAY_URL}")
+                    setBuildStatus("ci/preview/docs", "Click on Details to see preview.", "PENDING", "http://{hostName}/index.html")
+                    previewGenerated=true
                     timeout(time:2, unit:'DAYS') {
-                        input "Is everything ok?"
+                        input "Done with preview?"
                     }
+                    
                 }
             }
         }
@@ -65,10 +71,16 @@ openshift.withCluster() {
     finally {
         if (projectCreated) {
             node {
-                stage('Delete PR Project') {
+                stage('Cleanup') {
                     openshift.delete('project', project.toString())
                 }
             }
+        }
+        if previewGenerated {
+            setBuildStatus("ci/preview", "Done.", "SUCCESS", "")
+            setBuildStatus("ci/preview/docs", "Preview no longer available.", "SUCCESS", "")
+        } else {
+            setBuildStatus("ci/preview", "Failed to generate preview.", "FAILURE", "")
         }
     }
 }
